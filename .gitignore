@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+env/
+.env
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+
+# Development/Build
+dist/
+build/
+.DS_Store
+*.swp
+*.swo
+
+# Project specific
+database/*.db
+database/*.sqlite
+frontend/dist/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/

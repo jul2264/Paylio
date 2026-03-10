@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-color: #0f1015;
+  /* Very dark background */
+  --card-bg: #1c1d25;
+  /* Slightly lighter card background */
+  --card-hover: #24252e;
+  --text-main: #f8fafc;
+  --text-muted: #8b8d97;
+  --border-color: rgba(255, 255, 255, 0.05);
+
+  /* Accents based on images */
+  --accent-lime: #c9f45c;
+  --accent-lime-dark: #b1d94c;
+  --accent-purple: #7b42f6;
+  --accent-purple-light: #9a66fa;
+  --accent-blue: #3b82f6;
+  --accent-red: #ef4444;
+
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 8px 30px rgba(201, 244, 92, 0.2);
+
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-full: 9999px;
+
+  font-family: 'Outfit', sans-serif;
+}
+
+body.light-mode {
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --card-hover: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border-color: rgba(0, 0, 0, 0.08);
+
+  /* Adjust shadows slightly for light mode to maintain contrast */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+body.light-mode .card,
+body.light-mode .btn:not(.btn-primary):not(.btn-purple) {
+  color: var(--text-main);
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode p,
+body.light-mode .stat-value:not(.text-red):not(.text-lime),
+body.light-mode span:not(.stat-value):not([style*="color"]) {
+  color: var(--text-main);
+}
+
+body.light-mode .text-muted {
+  color: var(--text-muted) !important;
+}
+
+body.light-mode .btn-primary {
+  color: #111 !important;
+}
+
+/* Fix for the selected tabs which become invisible on light backgrounds */
+body.light-mode .sidebar .btn[style*="background: rgba(255, 255, 255, 0.1)"] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: var(--text-main) !important;
+}
+
+/* Fix for transaction items specifically when they might be overriding colors manually */
+body.light-mode div[style*="color: white"] {
+  color: var(--text-main) !important;
+}
+
+/* Fix for interaction elements in light mode */
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+  color: var(--text-main) !important;
+  background: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.light-mode .card:hover {
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.sidebar {
+  width: 280px;
+  background-color: var(--card-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 10;
+}
+
+.main-wrapper {
+  flex: 1;
+  margin-left: 280px;
+  /* offset for sidebar */
+  padding: 2rem 3rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.card-lime {
+  background: var(--accent-lime);
+  color: #111;
+  border: none;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+}
+
+.btn-primary {
+  background-color: var(--accent-lime);
+  color: #111;
+}
+
+.btn-primary:hover {
+  background-color: var(--accent-lime-dark);
+  transform: scale(1.02);
+}
+
+.btn-purple {
+  background-color: var(--accent-purple);
+  color: white;
+}
+
+.btn-purple:hover {
+  background-color: var(--accent-purple-light);
+}
+
+.btn-icon-only {
+  padding: 0.8rem;
+  border-radius: 50%;
+}
+
+/* Dashboard Grid */
+.dashboard-top {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.dashboard-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.stat-title {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 2.2rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+/* Utilities */
+.text-lime {
+  color: var(--accent-lime);
+}
+
+.text-purple {
+  color: var(--accent-purple);
+}
+
+.text-red {
+  color: var(--accent-red);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Chatbot specifics */
+.chatbot-bubble {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-purple-light));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 10px 25px rgba(123, 66, 246, 0.4);
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.chatbot-bubble:hover {
+  transform: scale(1.1);
+}
+
+.chatbot-window {
+  position: fixed;
+  bottom: 100px;
+  right: 24px;
+  width: 380px;
+  height: 600px;
+  background: var(--card-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 100;
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Animations */
+@keyframes pulse-loader {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.pulse-loader {
+  animation: pulse-loader 1.2s infinite ease-in-out;
+}
