@@ -1,16 +1,22 @@
 services:
-  postgres:
+  db:
     image: postgres:16
     container_name: paylio-postgres
     restart: unless-stopped
+    env_file: .env
     environment:
-      POSTGRES_DB: spendtracker
-      POSTGRES_USER: spendtracker
-      POSTGRES_PASSWORD: change-me
+      POSTGRES_DB: ${DB_NAME:-spendtracker}
+      POSTGRES_USER: ${DB_USER:-spendtracker}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me}
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-spendtracker} -d ${DB_NAME:-spendtracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:7-alpine
@@ -20,7 +26,104 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: paylio-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    # GPU acceleration: uncomment below for Nvidia GPU passthrough on Linux/WSL2
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  web:
+    build: .
+    container_name: paylio-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: redis://redis:6379/1
+      OLLAMA_HOST: http://ollama:11434
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - static_volume:/app/staticfiles
+
+  celery_default:
+    build: .
+    container_name: paylio-celery-default
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: redis://redis:6379/1
+    command: celery -A config worker -l info -Q default -c 4
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_llm:
+    build: .
+    container_name: paylio-celery-llm
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: redis://redis:6379/1
+      OLLAMA_HOST: http://ollama:11434
+    command: celery -A config worker -l info -Q llm -c 1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    build: .
+    container_name: paylio-celery-beat
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      CACHE_URL: redis://redis:6379/1
+    command: celery -A config beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   redis_data:
+  ollama_models:
+  static_volume:

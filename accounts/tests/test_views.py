@@ -76,8 +76,9 @@ def test_login_page_includes_frontend_assets(client):
     response = client.get(url)
     assert response.status_code == 200
     content = response.content.decode()
-    assert "htmx.org@1.9.12" in content
-    assert "chart.js@4" in content
+    assert "vendor/htmx.min.js" in content
+    assert "vendor/alpine.min.js" in content
+    assert "vendor/chart.min.js" in content
     assert "main.css" in content
 
 
