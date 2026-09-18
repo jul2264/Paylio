@@ -35,9 +35,9 @@ def categorize(transaction):
             transaction.save(update_fields=["category"])
             return
 
-    # Tier 3 (LLM fallback) is wired here in Sprint 13 by replacing this comment
-    # with: from advisor.tasks import categorize_with_llm; categorize_with_llm.delay(transaction.id)
-    # Until then, an unmatched transaction stays category=None (Uncategorized).
+    from advisor.tasks import categorize_with_llm
+
+    categorize_with_llm.delay(transaction.id)
 
 
 def record_user_correction(transaction, new_category):

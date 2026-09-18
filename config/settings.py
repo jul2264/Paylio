@@ -150,12 +150,24 @@ REST_FRAMEWORK = {
 }
 
 # Celery settings
+from celery.schedules import crontab
+
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_DEFAULT_QUEUE = "default"
 CELERY_TASK_QUEUES = {
     "default": {},
     "llm": {},
+}
+CELERY_TASK_ROUTES = {
+    "advisor.tasks.run_daily_insights": {"queue": "llm"},
+    "advisor.tasks.categorize_with_llm": {"queue": "llm"},
+}
+CELERY_BEAT_SCHEDULE = {
+    "nightly-insights": {
+        "task": "advisor.tasks.run_daily_insights",
+        "schedule": crontab(hour=2, minute=0),
+    },
 }
 
 # External Services

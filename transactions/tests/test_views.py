@@ -68,6 +68,7 @@ def test_transaction_create_invalidates_dashboard_cache(client):
     user = UserFactory()
     client.force_login(user)
     account = FinancialAccountFactory(user=user)
+    category = CategoryFactory(user=user)
 
     cache_key = f"dashboard:{user.id}:2026-9"
     cache.set(cache_key, {"summary": "stale_data"}, 300)
@@ -76,6 +77,7 @@ def test_transaction_create_invalidates_dashboard_cache(client):
     url = reverse("transactions:create")
     data = {
         "account": account.id,
+        "category": category.id,
         "amount": "500.00",
         "date": "2026-09-15",
         "merchant": "BigBasket",
@@ -90,10 +92,12 @@ def test_transaction_create_sends_htmx_trigger_header(client):
     user = UserFactory()
     client.force_login(user)
     account = FinancialAccountFactory(user=user)
+    category = CategoryFactory(user=user)
 
     url = reverse("transactions:create")
     data = {
         "account": account.id,
+        "category": category.id,
         "amount": "199.00",
         "date": "2026-09-15",
         "merchant": "BookMyShow",
@@ -179,6 +183,7 @@ def test_transaction_create_invalidates_budget_progress_cache(client):
     user = UserFactory()
     client.force_login(user)
     account = FinancialAccountFactory(user=user)
+    category = CategoryFactory(user=user)
 
     cache_key = f"budget_progress:{user.id}:2026-9"
     cache.set(cache_key, [{"fake": "progress"}], 300)
@@ -187,6 +192,7 @@ def test_transaction_create_invalidates_budget_progress_cache(client):
     url = reverse("transactions:create")
     data = {
         "account": account.id,
+        "category": category.id,
         "amount": "450.00",
         "date": "2026-09-15",
         "merchant": "Dunzo",

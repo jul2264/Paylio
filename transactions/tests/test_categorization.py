@@ -1,4 +1,6 @@
 import pytest
+import responses
+from django.conf import settings
 from accounts.tests.factories import UserFactory
 from transactions.categorization import (
     categorize,
@@ -46,9 +48,18 @@ def test_categorize_tier2_keyword_match():
 
 
 @pytest.mark.django_db
+@responses.activate
 def test_categorize_no_match_leaves_uncategorized():
     user = UserFactory()
     txn = TransactionFactory(user=user, merchant="XYZ RANDOM 123", category=None)
+
+    endpoint = f"{settings.OLLAMA_HOST}/api/chat"
+    responses.add(
+        responses.POST,
+        endpoint,
+        json={"message": {"content": "UNSURE"}},
+        status=200,
+    )
 
     categorize(txn)
     txn.refresh_from_db()
