@@ -1,0 +1,31 @@
+<tr class="border-b border-slate-800/80 hover:bg-slate-800/30 transition-colors">
+    <td class="py-3.5 px-4 text-sm text-slate-400 whitespace-nowrap">
+        {{ txn.date|date:"Y-m-d" }}
+    </td>
+    <td class="py-3.5 px-4">
+        <div class="text-sm font-medium text-slate-100">{{ txn.merchant|default:"Unknown Merchant" }}</div>
+        {% if txn.description %}
+            <div class="text-xs text-slate-400 mt-0.5">{{ txn.description }}</div>
+        {% endif %}
+    </td>
+    <td class="py-3.5 px-4 whitespace-nowrap">
+        {% if txn.category %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                {{ txn.category.name }}
+            </span>
+        {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700/50 text-slate-400 border border-slate-700">
+                Uncategorized
+            </span>
+        {% endif %}
+    </td>
+    <td class="py-3.5 px-4 text-sm text-slate-400 whitespace-nowrap">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700/60">
+            {{ txn.account.name }}
+        </span>
+    </td>
+    <td class="py-3.5 px-4 text-sm font-semibold text-right whitespace-nowrap text-rose-400">
+        -₹{{ txn.amount|floatformat:2 }}
+    </td>
+</tr>
+<div id="form-errors" hx-swap-oob="true"></div>

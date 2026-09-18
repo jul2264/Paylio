@@ -1,0 +1,19 @@
+<!-- validation error partial -->
+<div id="form-errors" hx-swap-oob="true" class="p-4 mb-6 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-sm space-y-2">
+    <div class="font-semibold flex items-center gap-2">
+        <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Please correct the errors below:</span>
+    </div>
+    <ul class="list-disc list-inside space-y-1 text-xs text-rose-200">
+        {% for field in form %}
+            {% for error in field.errors %}
+                <li><span class="font-medium text-rose-100">{{ field.label }}:</span> {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+            <li>{{ error }}</li>
+        {% endfor %}
+    </ul>
+</div>

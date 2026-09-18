@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Transactions — Paylio{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Transactions</h1>
+            <p class="text-sm text-slate-400 mt-1">Record manual spending and monitor your recent transaction history.</p>
+        </div>
+    </div>
+
+    <!-- Quick Add Transaction Card -->
+    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-6 backdrop-blur shadow-xl">
+        <div class="flex items-center gap-2.5 mb-5 pb-4 border-b border-slate-800">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-sm border border-emerald-500/20">
+                +
+            </div>
+            <div>
+                <h2 class="text-base font-semibold text-slate-100">Add New Transaction</h2>
+                <p class="text-xs text-slate-400">Instantly log an expense or payment</p>
+            </div>
+        </div>
+
+        <!-- Form Validation Errors (HTMX swap target) -->
+        <div id="form-errors"></div>
+
+        <form id="transaction-form"
+              method="post"
+              hx-post="{% url 'transactions:create' %}"
+              hx-target="#txn-table-body"
+              hx-swap="afterbegin"
+              hx-on::after-request="if(event.detail.successful) this.reset()"
+              class="space-y-4">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Date -->
+                <div>
+                    <label for="{{ form.date.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Date *
+                    </label>
+                    <input type="date"
+                           id="{{ form.date.id_for_label }}"
+                           name="date"
+                           required
+                           class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                </div>
+
+                <!-- Amount -->
+                <div>
+                    <label for="{{ form.amount.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Amount (₹) *
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
+                            ₹
+                        </div>
+                        <input type="number"
+                               step="0.01"
+                               id="{{ form.amount.id_for_label }}"
+                               name="amount"
+                               placeholder="0.00"
+                               required
+                               class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-8 pr-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                    </div>
+                </div>
+
+                <!-- Account -->
+                <div>
+                    <label for="{{ form.account.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Account *
+                    </label>
+                    <select id="{{ form.account.id_for_label }}"
+                            name="account"
+                            required
+                            class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                        {% for choice in form.account.field.choices %}
+                            {% if choice.0 %}
+                                <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                            {% else %}
+                                <option value="">Select Account</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Merchant -->
+                <div>
+                    <label for="{{ form.merchant.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Merchant / Payee
+                    </label>
+                    <input type="text"
+                           id="{{ form.merchant.id_for_label }}"
+                           name="merchant"
+                           placeholder="e.g. Swiggy, Amazon, Uber"
+                           class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Category
+                    </label>
+                    <select id="{{ form.category.id_for_label }}"
+                            name="category"
+                            class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                        {% for choice in form.category.field.choices %}
+                            {% if choice.0 %}
+                                <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                            {% else %}
+                                <option value="">Select Category (Optional)</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label for="{{ form.description.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Note / Description
+                    </label>
+                    <input type="text"
+                           id="{{ form.description.id_for_label }}"
+                           name="description"
+                           placeholder="Optional note"
+                           class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold text-sm shadow-md shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Save Transaction
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Transactions List & Filter Section -->
+    <div class="bg-slate-900/70 border border-slate-800/80 rounded-2xl p-6 backdrop-blur shadow-xl space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-800">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-100">Transaction History</h2>
+                <p class="text-xs text-slate-400">Showing up to the 100 most recent transactions</p>
+            </div>
+
+            <!-- Category Filter Dropdown -->
+            <div class="flex items-center gap-3">
+                <label for="category-filter" class="text-xs font-medium text-slate-400 whitespace-nowrap">Filter Category:</label>
+                <select id="category-filter"
+                        name="category"
+                        hx-get="{% url 'transactions:table_partial' %}"
+                        hx-target="#txn-table-body"
+                        hx-trigger="change"
+                        class="bg-slate-800/80 border border-slate-700/80 rounded-xl px-3.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800/80">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-slate-800 bg-slate-950/40 text-xs uppercase tracking-wider text-slate-400">
+                        <th class="py-3 px-4 font-semibold">Date</th>
+                        <th class="py-3 px-4 font-semibold">Merchant / Details</th>
+                        <th class="py-3 px-4 font-semibold">Category</th>
+                        <th class="py-3 px-4 font-semibold">Account</th>
+                        <th class="py-3 px-4 font-semibold text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="txn-table-body"
+                       hx-get="{% url 'transactions:table_partial' %}"
+                       hx-trigger="load">
+                    <tr>
+                        <td colspan="5" class="py-8 text-center text-sm text-slate-500">
+                            Loading transactions...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -17,6 +17,9 @@
                     <a href="{% url 'dashboard' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
                         Dashboard
                     </a>
+                    <a href="{% url 'transactions:list' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                        Transactions
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -64,6 +67,9 @@
             </div>
             <a href="{% url 'dashboard' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
                 Dashboard
+            </a>
+            <a href="{% url 'transactions:list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
+                Transactions
             </a>
             <form method="post" action="{% url 'logout' %}" class="pt-2">
                 {% csrf_token %}
