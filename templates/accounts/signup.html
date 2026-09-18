@@ -1,34 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paylio - Sign Up</title>
-</head>
-<body>
-    <main>
-        <h1>Create your Paylio Account</h1>
+{% extends "base.html" %}
+
+{% block title %}Sign Up — Paylio{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-8 sm:my-12">
+    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 text-slate-950 font-bold text-xl mb-4 shadow-lg shadow-emerald-500/20">
+                ₹
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Create your account</h1>
+            <p class="text-sm text-slate-400 mt-1">Start tracking your wealth and spending today</p>
+        </div>
+
         {% if form.errors %}
-            <div role="alert" class="errors">
-                <p>Please correct the errors below:</p>
-                <ul>
+        <div class="mb-6 p-4 rounded-xl bg-rose-950/40 border border-rose-800/80 text-rose-200 text-sm" role="alert">
+            <div class="flex items-center space-x-2 font-medium mb-1">
+                <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Please correct the errors below</span>
+            </div>
+            <ul class="list-disc list-inside text-xs text-rose-300 space-y-1">
                 {% for field in form %}
                     {% for error in field.errors %}
-                        <li>{{ field.label }}: {{ error }}</li>
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
                     {% endfor %}
                 {% endfor %}
                 {% for error in form.non_field_errors %}
                     <li>{{ error }}</li>
                 {% endfor %}
-                </ul>
-            </div>
+            </ul>
+        </div>
         {% endif %}
-        <form method="post" action="{% url 'signup' %}">
+
+        <form method="post" action="{% url 'signup' %}" class="space-y-4">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Sign Up</button>
+
+            <div>
+                <label for="id_username" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Username
+                </label>
+                <input type="text" name="username" id="id_username" required autofocus
+                       value="{{ form.username.value|default:'' }}"
+                       class="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                       placeholder="Choose a username">
+                {% if form.username.help_text %}
+                    <p class="mt-1 text-[11px] text-slate-400">{{ form.username.help_text }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_password1" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Password
+                </label>
+                <input type="password" name="password1" id="id_password1" required
+                       class="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                       placeholder="Create a strong password">
+                {% if form.password1.help_text %}
+                    <p class="mt-1 text-[11px] text-slate-400">{{ form.password1.help_text|striptags }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="id_password2" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Confirm Password
+                </label>
+                <input type="password" name="password2" id="id_password2" required
+                       class="w-full bg-slate-950/90 border border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all text-sm"
+                       placeholder="Repeat your password">
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-semibold py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.01] active:scale-[0.99] transition-all text-sm mt-4">
+                Create Account
+            </button>
         </form>
-        <p>Already have an account? <a href="{% url 'login' %}">Log In</a></p>
-    </main>
-</body>
-</html>
+
+        <p class="mt-6 text-center text-xs text-slate-400">
+            Already have an account?
+            <a href="{% url 'login' %}" class="font-medium text-emerald-400 hover:text-emerald-300 hover:underline">
+                Sign in
+            </a>
+        </p>
+    </div>
+</div>
+{% endblock %}

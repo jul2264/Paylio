@@ -68,3 +68,14 @@ def test_logout_clears_session(client):
     resp_after = client.get(dashboard_url)
     assert resp_after.status_code == 302
     assert reverse("login") in resp_after.url
+
+
+@pytest.mark.django_db
+def test_login_page_includes_frontend_assets(client):
+    url = reverse("login")
+    response = client.get(url)
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "htmx.org@1.9.12" in content
+    assert "chart.js@4" in content
+    assert "main.css" in content
