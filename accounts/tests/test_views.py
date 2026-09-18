@@ -123,3 +123,60 @@ def test_otp_setup_post_valid_token_confirms_device(client):
     device = TOTPDevice.objects.get(user=user)
     assert device.confirmed is True
 
+
+@pytest.mark.django_db
+def test_otp_setup_post_invalid_token_shows_error(client):
+    from unittest.mock import patch
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    user = UserFactory()
+    client.force_login(user)
+
+    url = reverse("otp_setup")
+    client.get(url)
+
+    with patch("django_otp.plugins.otp_totp.models.TOTPDevice.verify_token", return_value=False):
+        response = client.post(url, {"token": "000000"})
+
+    assert response.status_code == 200
+    assert "Invalid 6-digit verification code" in response.content.decode()
+
+    device = TOTPDevice.objects.get(user=user)
+    assert device.confirmed is False
+
+
+@pytest.mark.django_db
+def test_otp_setup_preserves_and_redirects_to_next_url(client):
+    from unittest.mock import patch
+
+    user = UserFactory()
+    client.force_login(user)
+
+    target_next = "/investments/connect/"
+    url = f"{reverse('otp_setup')}?next={target_next}"
+    client.get(url)
+
+    with patch("django_otp.plugins.otp_totp.models.TOTPDevice.verify_token", return_value=True):
+        response = client.post(url, {"token": "654321", "next": target_next})
+
+    assert response.status_code == 302
+    assert response.url == target_next
+
+
+@pytest.mark.django_db
+def test_otp_setup_shows_confirmed_badge_when_already_verified(client):
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    user = UserFactory()
+    client.force_login(user)
+    TOTPDevice.objects.create(user=user, name="default", confirmed=True)
+
+    url = reverse("otp_setup")
+    response = client.get(url)
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "2FA Currently Active" in content
+    assert "Enter a 6-digit code" in content
+
+

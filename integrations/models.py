@@ -21,4 +21,4 @@ class BankConsent(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.aa_provider} ({self.status})"
+        return f"{self.user.username} - {self.aa_provider} ({self.get_status_display()})"

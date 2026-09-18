@@ -34,6 +34,12 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
                         <span class="font-medium text-slate-200">{{ request.user.username }}</span>
                     </div>
+                    <a href="{% url 'otp_setup' %}" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 border border-slate-700/60 transition-colors flex items-center gap-1.5" title="Two-Factor Authentication">
+                        <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        2FA
+                    </a>
                     <form method="post" action="{% url 'logout' %}" class="inline">
                         {% csrf_token %}
                         <button type="submit" class="px-3.5 py-1.5 rounded-lg text-sm font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 transition-colors">
@@ -76,6 +82,9 @@
             </a>
             <a href="{% url 'investments:holdings' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
                 Investments
+            </a>
+            <a href="{% url 'otp_setup' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
+                2FA Security
             </a>
             <form method="post" action="{% url 'logout' %}" class="pt-2">
                 {% csrf_token %}
