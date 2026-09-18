@@ -223,3 +223,66 @@ def test_recategorize_invalidates_both_dashboard_and_budget_caches(client):
     assert response.status_code == 200
     assert cache.get(dash_key) is None
     assert cache.get(budget_key) is None
+
+
+@pytest.mark.django_db
+def test_import_csv_view_requires_login(client):
+    url = reverse("transactions:import_csv")
+    response = client.get(url)
+    assert response.status_code == 302
+    assert reverse("login") in response.url
+
+
+@pytest.mark.django_db
+def test_import_csv_view_get_renders_form(client):
+    user = UserFactory()
+    client.force_login(user)
+    account = FinancialAccountFactory(user=user)
+
+    url = reverse("transactions:import_csv")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert "Import Bank Statement" in response.content.decode()
+    assert account.name in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_import_csv_view_invalidates_cache_for_every_affected_month(client):
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    user = UserFactory()
+    client.force_login(user)
+    account = FinancialAccountFactory(user=user)
+    CategoryFactory(user=user, name="Food & Dining")
+    CategoryFactory(user=user, name="Transport")
+
+    # Set cache keys for August and September
+    dash_aug = f"dashboard:{user.id}:2026-8"
+    budget_aug = f"budget_progress:{user.id}:2026-8"
+    dash_sep = f"dashboard:{user.id}:2026-9"
+    budget_sep = f"budget_progress:{user.id}:2026-9"
+
+    for k in [dash_aug, budget_aug, dash_sep, budget_sep]:
+        cache.set(k, {"test": "data"}, 300)
+        assert cache.get(k) is not None
+
+    csv_data = (
+        b"Date,Amount,Narration,Reference No\n"
+        b"2026-08-15,350.00,Uber Ride,REF_V_AUG\n"
+        b"2026-09-20,499.00,SWIGGY Delivery,REF_V_SEP\n"
+    )
+    uploaded_file = SimpleUploadedFile("statement.csv", csv_data, content_type="text/csv")
+
+    url = reverse("transactions:import_csv")
+    response = client.post(url, {"account": account.id, "file": uploaded_file})
+
+    assert response.status_code == 302
+    assert response.url == reverse("transactions:list")
+
+    # Verify cache invalidated for all affected months
+    for k in [dash_aug, budget_aug, dash_sep, budget_sep]:
+        assert cache.get(k) is None
+
+    # Verify transactions created
+    assert Transaction.objects.filter(account=account).count() == 2
+
