@@ -1,0 +1,96 @@
+<div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-5 border-b border-slate-800/80 gap-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20 font-bold">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white tracking-tight">Live Bullion &amp; Precious Metal Rates</h2>
+                <p class="text-xs text-slate-400">Spot market prices per gram in Indian Rupees (INR) refreshed periodically</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>{% if last_updated %}Updated {{ last_updated|timesince }} ago{% else %}Live Spot Ticker{% endif %}</span>
+        </div>
+    </div>
+
+    {% if gold or silver or platinum %}
+    <!-- 3 Metal Cards Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Gold Card -->
+        <div class="bg-slate-950/60 border border-amber-500/20 rounded-2xl p-5 shadow-lg relative overflow-hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <h3 class="text-sm font-bold text-amber-300 uppercase tracking-wider">Gold (XAU)</h3>
+                </div>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    INR / gram
+                </span>
+            </div>
+
+            <div class="space-y-2.5 divide-y divide-slate-800/60">
+                {% for label, price in gold.items %}
+                <div class="flex items-center justify-between pt-2 first:pt-0">
+                    <span class="text-xs font-semibold text-slate-300">{{ label }}</span>
+                    <span class="text-sm font-mono font-bold text-amber-200">₹{{ price|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Silver Card -->
+        <div class="bg-slate-950/60 border border-slate-400/20 rounded-2xl p-5 shadow-lg relative overflow-hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span>
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider">Silver (XAG)</h3>
+                </div>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-slate-500/10 text-slate-300 border border-slate-500/20">
+                    INR / gram
+                </span>
+            </div>
+
+            <div class="space-y-2.5 divide-y divide-slate-800/60">
+                {% for label, price in silver.items %}
+                <div class="flex items-center justify-between pt-2 first:pt-0">
+                    <span class="text-xs font-semibold text-slate-300">{{ label }}</span>
+                    <span class="text-sm font-mono font-bold text-slate-100">₹{{ price|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Platinum Card -->
+        <div class="bg-slate-950/60 border border-cyan-500/20 rounded-2xl p-5 shadow-lg relative overflow-hidden space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                    <h3 class="text-sm font-bold text-cyan-300 uppercase tracking-wider">Platinum (XPT)</h3>
+                </div>
+                <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                    INR / gram
+                </span>
+            </div>
+
+            <div class="space-y-2.5 divide-y divide-slate-800/60">
+                {% for label, price in platinum.items %}
+                <div class="flex items-center justify-between pt-2 first:pt-0">
+                    <span class="text-xs font-semibold text-slate-300">{{ label }}</span>
+                    <span class="text-sm font-mono font-bold text-cyan-200">₹{{ price|floatformat:2 }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-8 space-y-2">
+        <p class="text-sm text-slate-400 font-medium">No precious metal rates recorded yet.</p>
+        <p class="text-xs text-slate-500">Live rates will automatically populate upon background scheduler execution.</p>
+    </div>
+    {% endif %}
+</div>

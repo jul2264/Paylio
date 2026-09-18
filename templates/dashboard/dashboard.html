@@ -141,6 +141,18 @@
         {% endif %}
     </div>
 
+    <!-- Live Precious Metal Rates Section -->
+    <div hx-get="{% url 'rates:widget' %}" hx-trigger="load, every 300s">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl animate-pulse">
+            <div class="h-5 bg-slate-800 rounded w-1/4 mb-4"></div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="h-32 bg-slate-800/60 rounded-xl"></div>
+                <div class="h-32 bg-slate-800/60 rounded-xl"></div>
+                <div class="h-32 bg-slate-800/60 rounded-xl"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Advisor Feed Section -->
     <div hx-get="{% url 'advisor:feed_partial' %}" hx-trigger="load">
         <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl animate-pulse">

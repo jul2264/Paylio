@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "integrations",
     "investments",
     "dashboard",
+    "rates",
 ]
 
 MIDDLEWARE = [
@@ -178,15 +179,20 @@ CELERY_BEAT_SCHEDULE = {
         "task": "investments.tasks.sync_all_holdings",
         "schedule": crontab(hour=9, minute=30),
     },
+    "refresh-metal-rates": {
+        "task": "rates.tasks.refresh_metal_rates",
+        "schedule": 60 * 30,
+    },
 }
 
 # External Services
 OLLAMA_HOST = env("OLLAMA_HOST", default="http://localhost:11434")
 
-# Encryption and Broker Settings
+# Encryption and External API Settings
 FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="3aMrjiaFgJFkindfziY3E5cMhqMrdf-3lsCk4svL7-Y=")
 KITE_API_KEY = env("KITE_API_KEY", default="test_kite_api_key")
 KITE_API_SECRET = env("KITE_API_SECRET", default="test_kite_api_secret")
+METALS_API_KEY = env("METALS_API_KEY", default="test_goldapi_key")
 
 # Security / Axes settings
 AXES_FAILURE_LIMIT = 5
