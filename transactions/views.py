@@ -41,6 +41,7 @@ def transaction_create(request):
         if txn.category is None:
             categorize(txn)
         cache.delete(f"dashboard:{request.user.id}:{txn.date.year}-{txn.date.month}")
+        cache.delete(f"budget_progress:{request.user.id}:{txn.date.year}-{txn.date.month}")
         categories = Category.objects.filter(user=request.user).order_by("name")
         response = render(request, "partials/_transaction_row.html", {"txn": txn, "categories": categories})
         response = trigger_client_event(response, "transactionsChanged")
@@ -55,5 +56,6 @@ def transaction_recategorize(request, pk):
     category = get_object_or_404(Category, pk=request.POST["category"], user=request.user)
     record_user_correction(txn, category)
     cache.delete(f"dashboard:{request.user.id}:{txn.date.year}-{txn.date.month}")
+    cache.delete(f"budget_progress:{request.user.id}:{txn.date.year}-{txn.date.month}")
     categories = Category.objects.filter(user=request.user).order_by("name")
     return render(request, "partials/_transaction_row.html", {"txn": txn, "categories": categories})

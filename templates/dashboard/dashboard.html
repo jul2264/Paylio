@@ -76,6 +76,18 @@
         </div>
     </div>
 
+    <!-- Budget Progress Tracking Section -->
+    <div hx-get="{% url 'budgets:progress_partial' %}"
+         hx-trigger="load, transactionsChanged from:body">
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl animate-pulse">
+            <div class="h-5 bg-slate-800 rounded w-1/4 mb-4"></div>
+            <div class="space-y-4">
+                <div class="h-3 bg-slate-800 rounded"></div>
+                <div class="h-3 bg-slate-800 rounded"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Spending Breakdown Section -->
     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-6 mb-6 border-b border-slate-800/80 gap-2">

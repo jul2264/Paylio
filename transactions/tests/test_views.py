@@ -172,3 +172,48 @@ def test_recategorize_rejects_other_users_transaction(client):
     response = client.post(url, {"category": cat_b.id})
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_transaction_create_invalidates_budget_progress_cache(client):
+    user = UserFactory()
+    client.force_login(user)
+    account = FinancialAccountFactory(user=user)
+
+    cache_key = f"budget_progress:{user.id}:2026-9"
+    cache.set(cache_key, [{"fake": "progress"}], 300)
+    assert cache.get(cache_key) is not None
+
+    url = reverse("transactions:create")
+    data = {
+        "account": account.id,
+        "amount": "450.00",
+        "date": "2026-09-15",
+        "merchant": "Dunzo",
+    }
+    response = client.post(url, data)
+    assert response.status_code == 200
+    assert cache.get(cache_key) is None
+
+
+@pytest.mark.django_db
+def test_recategorize_invalidates_both_dashboard_and_budget_caches(client):
+    user = UserFactory()
+    client.force_login(user)
+    cat_old = CategoryFactory(user=user, name="Groceries")
+    cat_new = CategoryFactory(user=user, name="Household")
+    txn = TransactionFactory(user=user, category=cat_old, date=date(2026, 9, 10))
+
+    dash_key = f"dashboard:{user.id}:2026-9"
+    budget_key = f"budget_progress:{user.id}:2026-9"
+    cache.set(dash_key, {"summary": "old"}, 300)
+    cache.set(budget_key, [{"data": "old"}], 300)
+    assert cache.get(dash_key) is not None
+    assert cache.get(budget_key) is not None
+
+    url = reverse("transactions:recategorize", kwargs={"pk": txn.id})
+    response = client.post(url, {"category": cat_new.id})
+
+    assert response.status_code == 200
+    assert cache.get(dash_key) is None
+    assert cache.get(budget_key) is None
