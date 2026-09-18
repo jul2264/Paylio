@@ -9,15 +9,24 @@
         {% endif %}
     </td>
     <td class="py-3.5 px-4 whitespace-nowrap">
-        {% if txn.category %}
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                {{ txn.category.name }}
-            </span>
-        {% else %}
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700/50 text-slate-400 border border-slate-700">
-                Uncategorized
-            </span>
-        {% endif %}
+        <form hx-post="{% url 'transactions:recategorize' txn.id %}"
+              hx-target="closest tr"
+              hx-swap="outerHTML"
+              class="inline-block m-0">
+            {% csrf_token %}
+            <select name="category"
+                    hx-trigger="change"
+                    class="text-xs font-medium rounded-lg bg-slate-800/90 border border-slate-700/80 text-emerald-400 hover:border-emerald-500/50 focus:outline-none focus:ring-1 focus:ring-emerald-500 py-1 px-2.5 transition-colors cursor-pointer">
+                {% if not txn.category %}
+                    <option value="" selected disabled>Uncategorized</option>
+                {% endif %}
+                {% for cat in categories|default:request.user.category_set.all %}
+                    <option value="{{ cat.id }}" {% if txn.category_id == cat.id %}selected{% endif %}>
+                        {{ cat.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
     </td>
     <td class="py-3.5 px-4 text-sm text-slate-400 whitespace-nowrap">
         <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700/60">

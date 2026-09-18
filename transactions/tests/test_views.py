@@ -4,7 +4,7 @@ import pytest
 from django.core.cache import cache
 from django.urls import reverse
 from accounts.tests.factories import UserFactory
-from transactions.models import Transaction
+from transactions.models import Transaction, UserMerchantCategory
 from transactions.tests.factories import CategoryFactory, FinancialAccountFactory, TransactionFactory
 
 
@@ -137,3 +137,38 @@ def test_transaction_table_partial_caps_at_100(client):
 
     assert response.status_code == 200
     assert len(response.context["transactions"]) == 100
+
+
+@pytest.mark.django_db
+def test_recategorize_updates_category_and_learns_mapping(client):
+    user = UserFactory()
+    client.force_login(user)
+    cat_old = CategoryFactory(user=user, name="Old Category")
+    cat_new = CategoryFactory(user=user, name="New Category")
+    txn = TransactionFactory(user=user, category=cat_old, merchant="Custom Store")
+
+    url = reverse("transactions:recategorize", kwargs={"pk": txn.id})
+    response = client.post(url, {"category": cat_new.id})
+
+    assert response.status_code == 200
+    txn.refresh_from_db()
+    assert txn.category == cat_new
+    assert UserMerchantCategory.objects.filter(
+        user=user, merchant_normalized="custom store", category=cat_new
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_recategorize_rejects_other_users_transaction(client):
+    user_a = UserFactory(username="user_a")
+    user_b = UserFactory(username="user_b")
+    client.force_login(user_b)
+
+    cat_a = CategoryFactory(user=user_a, name="Cat A")
+    cat_b = CategoryFactory(user=user_b, name="Cat B")
+    txn_a = TransactionFactory(user=user_a, category=cat_a, merchant="Store A")
+
+    url = reverse("transactions:recategorize", kwargs={"pk": txn_a.id})
+    response = client.post(url, {"category": cat_b.id})
+
+    assert response.status_code == 404
