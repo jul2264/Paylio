@@ -26,5 +26,6 @@ qrcode>=7.4.2
 pillow>=10.4.0
 whitenoise>=6.7.0
 gunicorn>=22.0.0
+djangorestframework-simplejwt>=5.3.1
 
 

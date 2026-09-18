@@ -14,6 +14,12 @@ def run_daily_insights():
                 generate_advice(insight)
             except Exception:
                 pass
+            if getattr(insight, "severity", None) == "CRITICAL":
+                try:
+                    from api.notifications import send_push_notification_for_insight
+                    send_push_notification_for_insight(user, insight)
+                except Exception:
+                    pass
 
 
 @shared_task(acks_late=True, retry_backoff=True, max_retries=3)

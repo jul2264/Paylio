@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Paylio",
+    "slug": "paylio",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.paylio.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.paylio.app"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "paylio-mobile-project-id"
+      }
+    }
+  }
+}
