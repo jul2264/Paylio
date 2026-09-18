@@ -20,6 +20,9 @@
                     <a href="{% url 'transactions:list' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
                         Transactions
                     </a>
+                    <a href="{% url 'investments:holdings' %}" class="px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                        Investments
+                    </a>
                 </div>
                 {% endif %}
             </div>
@@ -70,6 +73,9 @@
             </a>
             <a href="{% url 'transactions:list' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
                 Transactions
+            </a>
+            <a href="{% url 'investments:holdings' %}" class="block px-3 py-2 rounded-lg text-base font-medium text-slate-300 hover:text-white hover:bg-slate-800">
+                Investments
             </a>
             <form method="post" action="{% url 'logout' %}" class="pt-2">
                 {% csrf_token %}

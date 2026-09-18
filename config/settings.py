@@ -26,6 +26,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "axes",
     "django_celery_beat",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     # Local project apps
     "accounts",
     "transactions",
@@ -42,6 +44,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
@@ -168,12 +171,28 @@ CELERY_BEAT_SCHEDULE = {
         "task": "advisor.tasks.run_daily_insights",
         "schedule": crontab(hour=2, minute=0),
     },
+    "daily-holdings-sync": {
+        "task": "investments.tasks.sync_all_holdings",
+        "schedule": crontab(hour=9, minute=30),
+    },
 }
 
 # External Services
 OLLAMA_HOST = env("OLLAMA_HOST", default="http://localhost:11434")
 
+# Encryption and Broker Settings
+FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="3aMrjiaFgJFkindfziY3E5cMhqMrdf-3lsCk4svL7-Y=")
+KITE_API_KEY = env("KITE_API_KEY", default="test_kite_api_key")
+KITE_API_SECRET = env("KITE_API_SECRET", default="test_kite_api_secret")
+
 # Security / Axes settings
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1  # 1 hour
 AXES_RESET_ON_SUCCESS = True
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+

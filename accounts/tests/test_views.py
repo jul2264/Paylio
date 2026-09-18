@@ -79,3 +79,47 @@ def test_login_page_includes_frontend_assets(client):
     assert "htmx.org@1.9.12" in content
     assert "chart.js@4" in content
     assert "main.css" in content
+
+
+@pytest.mark.django_db
+def test_otp_setup_requires_login(client):
+    url = reverse("otp_setup")
+    response = client.get(url)
+    assert response.status_code == 302
+    assert reverse("login") in response.url
+
+
+@pytest.mark.django_db
+def test_otp_setup_get_renders_qr_code(client):
+    user = UserFactory()
+    client.force_login(user)
+
+    url = reverse("otp_setup")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert "qr_b64" in response.context
+    assert "data:image/png;base64," in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_otp_setup_post_valid_token_confirms_device(client):
+    from unittest.mock import patch
+
+    user = UserFactory()
+    client.force_login(user)
+
+    url = reverse("otp_setup")
+    # First GET creates the device
+    client.get(url)
+
+    with patch("django_otp.plugins.otp_totp.models.TOTPDevice.verify_token", return_value=True):
+        response = client.post(url, {"token": "123456"})
+
+    assert response.status_code == 302
+    assert response.url == reverse("dashboard")
+
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+
+    device = TOTPDevice.objects.get(user=user)
+    assert device.confirmed is True
+
