@@ -29,3 +29,24 @@ def test_refresh_metal_rates_creates_a_snapshot_per_metal():
 
     plat_snap = MetalRateSnapshot.objects.get(metal="PLATINUM")
     assert float(plat_snap.price_per_gram_999) == 3150.00
+
+
+@pytest.mark.django_db
+def test_refresh_metal_rates_prunes_older_than_7_days():
+    from datetime import timedelta
+    from decimal import Decimal
+    from django.utils import timezone
+
+    old_snap = MetalRateSnapshot.objects.create(
+        metal="GOLD",
+        price_per_gram_999=Decimal("7000.00"),
+    )
+    MetalRateSnapshot.objects.filter(id=old_snap.id).update(
+        fetched_at=timezone.now() - timedelta(days=8)
+    )
+
+    with patch("rates.tasks.fetch_price_per_gram_inr", return_value=7200.00):
+        refresh_metal_rates()
+
+    assert not MetalRateSnapshot.objects.filter(id=old_snap.id).exists()
+    assert MetalRateSnapshot.objects.count() == 3

@@ -11,12 +11,28 @@ def import_csv(user, account: FinancialAccount, file):
         ref_val = row.get("Reference No")
         external_id = str(ref_val) if pd.notna(ref_val) and str(ref_val).strip() != "" else str(row.name)
 
+        raw_amount = float(row["Amount"])
+        type_col = str(row.get("Type", row.get("Kind", ""))).strip().upper()
+        if type_col in ["INCOME", "CR", "CREDIT"]:
+            kind = Transaction.INCOME
+        elif type_col in ["EXPENSE", "DR", "DEBIT"]:
+            kind = Transaction.EXPENSE
+        elif raw_amount < 0:
+            kind = Transaction.EXPENSE
+        else:
+            narration_lower = str(row.get("Narration", "")).lower()
+            if any(kw in narration_lower for kw in ["salary", "payroll", "dividend", "interest credited"]):
+                kind = Transaction.INCOME
+            else:
+                kind = Transaction.EXPENSE
+
         txn, created = Transaction.objects.get_or_create(
             account=account,
             external_id=external_id,
             defaults={
                 "user": user,
                 "amount": abs(row["Amount"]),
+                "kind": kind,
                 "date": pd.to_datetime(row["Date"]).date(),
                 "merchant": str(row.get("Narration", ""))[:200],
                 "source": Transaction.BANK_SYNC,

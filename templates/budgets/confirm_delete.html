@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Budget — Paylio{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto space-y-6">
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl text-center">
+        <div class="w-12 h-12 rounded-full bg-rose-500/10 text-rose-400 flex items-center justify-center mx-auto mb-4 border border-rose-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </div>
+
+        <h2 class="text-xl font-bold text-white mb-2">Delete Budget?</h2>
+        <p class="text-sm text-slate-400 mb-6">
+            Are you sure you want to remove the <span class="text-white font-medium">₹{{ budget.monthly_limit|floatformat:2 }}</span> monthly budget for <span class="text-emerald-400 font-medium">{{ budget.category.name }}</span>?
+        </p>
+
+        <form method="post" class="flex justify-center gap-3">
+            {% csrf_token %}
+            <a href="{% url 'budgets:list' %}"
+               class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors">
+                Cancel
+            </a>
+            <button type="submit"
+                    class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm shadow-md shadow-rose-600/20 transition-colors">
+                Yes, Delete
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -181,3 +181,12 @@ def test_otp_setup_shows_confirmed_badge_when_already_verified(client):
     assert "Enter a 6-digit code" in content
 
 
+@pytest.mark.django_db
+def test_email_uniqueness_enforced():
+    from django.db import IntegrityError
+
+    User.objects.create_user(username="user1", email="duplicate@example.com", password="password123")
+    with pytest.raises(IntegrityError):
+        User.objects.create_user(username="user2", email="duplicate@example.com", password="password123")
+
+

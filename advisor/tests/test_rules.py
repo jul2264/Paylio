@@ -130,3 +130,22 @@ def test_run_rules_for_user_aggregates_both_rules():
     assert "budget_overspend" in rule_keys
     assert "trend_increase" in rule_keys
     assert len(insights) == 2
+
+
+@pytest.mark.django_db
+@freeze_time("2026-09-15")
+def test_run_rules_idempotent_no_duplicate_insights():
+    user = UserFactory()
+    cat = CategoryFactory(user=user, name="Shopping")
+    BudgetFactory(user=user, category=cat, monthly_limit=Decimal("1000.00"))
+
+    # Spend over budget
+    TransactionFactory(user=user, category=cat, amount=Decimal("1600.00"), date=date(2026, 9, 10))
+
+    # Run rules twice
+    insights_1 = run_rules_for_user(user, date(2026, 9, 1), date(2026, 9, 30))
+    insights_2 = run_rules_for_user(user, date(2026, 9, 1), date(2026, 9, 30))
+
+    assert len(insights_1) == 1
+    assert len(insights_2) == 1
+    assert Insight.objects.filter(user=user, rule_key="budget_overspend").count() == 1

@@ -1,0 +1,57 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+     id="account-modal"
+     x-data
+     @keydown.escape.window="$el.remove()">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md shadow-2xl relative mx-4">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4">
+            <h3 class="text-lg font-bold text-white">Create Financial Account</h3>
+            <button type="button"
+                    onclick="document.getElementById('account-modal').remove()"
+                    class="text-slate-400 hover:text-white text-sm font-semibold p-1">
+                ✕
+            </button>
+        </div>
+
+        <form hx-post="{% url 'transactions:account_create' %}"
+              hx-target="#id_account"
+              hx-swap="beforeend"
+              hx-on::after-request="if(event.detail.successful) { const m = event.detail.xhr.response.match(/value=&quot;(\d+)&quot;/); if (m) document.getElementById('id_account').value = m[1]; document.getElementById('account-modal').remove(); }"
+              class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Account Name *
+                </label>
+                <input type="text"
+                       name="name"
+                       placeholder="e.g. HDFC Salary, ICICI Savings, Cash"
+                       required
+                       class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Account Type *
+                </label>
+                <select name="account_type"
+                        class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    {% for val, label in account_types %}
+                        <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button"
+                        onclick="document.getElementById('account-modal').remove()"
+                        class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold text-sm shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    Create Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

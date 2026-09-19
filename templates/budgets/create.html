@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Create Budget — Paylio{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto space-y-6">
+    <div class="flex items-center space-x-3 pb-4 border-b border-slate-800">
+        <a href="{% url 'budgets:list' %}" class="text-slate-400 hover:text-white transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 class="text-2xl font-bold text-white tracking-tight">Create Category Budget</h1>
+    </div>
+
+    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="p-3 bg-rose-950/50 border border-rose-800 text-rose-200 rounded-xl text-xs">
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <div>
+                <label for="{{ form.category.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Category *
+                </label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                <p class="text-xs text-rose-400 mt-1">{{ form.category.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label for="{{ form.monthly_limit.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                    Monthly Spending Limit (₹) *
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500 text-sm">
+                        ₹
+                    </div>
+                    <input type="number"
+                           step="0.01"
+                           id="{{ form.monthly_limit.id_for_label }}"
+                           name="monthly_limit"
+                           value="{{ form.monthly_limit.value|default:'' }}"
+                           required
+                           placeholder="5000.00"
+                           class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl pl-8 pr-3.5 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm transition-colors">
+                </div>
+                {% if form.monthly_limit.errors %}
+                <p class="text-xs text-rose-400 mt-1">{{ form.monthly_limit.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                <a href="{% url 'budgets:list' %}"
+                   class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-semibold text-sm shadow-md shadow-emerald-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                    Save Budget
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

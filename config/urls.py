@@ -10,5 +10,6 @@ urlpatterns = [
     path("advisor/", include("advisor.urls")),
     path("investments/", include("investments.urls")),
     path("rates/", include("rates.urls")),
+    path("integrations/", include("integrations.urls")),
     path("api/v1/", include("api.urls")),
 ]

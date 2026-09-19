@@ -286,3 +286,38 @@ def test_import_csv_view_invalidates_cache_for_every_affected_month(client):
     # Verify transactions created
     assert Transaction.objects.filter(account=account).count() == 2
 
+
+@pytest.mark.django_db
+def test_account_create_view_creates_account(client):
+    from transactions.models import FinancialAccount
+
+    user = UserFactory()
+    client.force_login(user)
+
+    url = reverse("transactions:account_create")
+    response = client.post(url, {"name": "HDFC Salary", "account_type": "CHECKING"})
+
+    assert response.status_code == 200
+    assert "HDFC Salary" in response.content.decode()
+    assert FinancialAccount.objects.filter(user=user, name="HDFC Salary").exists()
+
+
+@pytest.mark.django_db
+def test_transaction_toggle_recurring_view(client):
+    user = UserFactory()
+    client.force_login(user)
+    account = FinancialAccountFactory(user=user)
+    txn = TransactionFactory(user=user, account=account, is_recurring=False)
+
+    url = reverse("transactions:toggle_recurring", kwargs={"pk": txn.id})
+    response = client.post(url)
+
+    assert response.status_code == 200
+    txn.refresh_from_db()
+    assert txn.is_recurring is True
+
+    # Toggle again
+    client.post(url)
+    txn.refresh_from_db()
+    assert txn.is_recurring is False
+

@@ -10,16 +10,23 @@ User = get_user_model()
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "password"]
 
+    def validate_email(self, value):
+        normalized = value.strip().lower()
+        if User.objects.filter(email__iexact=normalized).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return normalized
+
     def create(self, validated_data):
         return User.objects.create_user(
             username=validated_data["username"],
-            email=validated_data.get("email", ""),
+            email=validated_data["email"],
             password=validated_data["password"],
         )
 
@@ -51,6 +58,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             "category",
             "category_name",
             "amount",
+            "kind",
             "date",
             "merchant",
             "description",

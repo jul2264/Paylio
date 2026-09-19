@@ -2,7 +2,9 @@
 Django settings for config project.
 """
 
+from datetime import timedelta
 from pathlib import Path
+from celery.schedules import crontab
 from decouple import config as env, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -143,8 +145,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
-from datetime import timedelta
-
 # REST Framework settings
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -175,8 +175,6 @@ SIMPLE_JWT = {
 }
 
 # Celery settings
-from celery.schedules import crontab
-
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_DEFAULT_QUEUE = "default"
@@ -192,6 +190,14 @@ CELERY_BEAT_SCHEDULE = {
     "nightly-insights": {
         "task": "advisor.tasks.run_daily_insights",
         "schedule": crontab(hour=2, minute=0),
+    },
+    "purge-old-insights": {
+        "task": "advisor.tasks.purge_old_insights",
+        "schedule": crontab(hour=3, minute=0),
+    },
+    "detect-recurring": {
+        "task": "advisor.tasks.detect_recurring_for_all_users",
+        "schedule": crontab(hour=4, minute=0),
     },
     "daily-holdings-sync": {
         "task": "investments.tasks.sync_all_holdings",
@@ -211,6 +217,11 @@ FIELD_ENCRYPTION_KEY = env("FIELD_ENCRYPTION_KEY", default="3aMrjiaFgJFkindfziY3
 KITE_API_KEY = env("KITE_API_KEY", default="test_kite_api_key")
 KITE_API_SECRET = env("KITE_API_SECRET", default="test_kite_api_secret")
 METALS_API_KEY = env("METALS_API_KEY", default="test_goldapi_key")
+SETU_CLIENT_ID = env("SETU_CLIENT_ID", default="")
+SETU_CLIENT_SECRET = env("SETU_CLIENT_SECRET", default="")
+SETU_PRODUCT_INSTANCE_ID = env("SETU_PRODUCT_INSTANCE_ID", default="")
+SETU_AA_BASE_URL = env("SETU_AA_BASE_URL", default="https://fiu-uat.setu.co")
+SETU_WEBHOOK_SECRET = env("SETU_WEBHOOK_SECRET", default="test_setu_webhook_secret")
 
 # Security / Axes settings
 AXES_FAILURE_LIMIT = 5

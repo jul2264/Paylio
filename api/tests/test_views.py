@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from rest_framework.test import APIClient
 
 from accounts.models import User
@@ -239,3 +240,69 @@ def test_push_notification_dispatch_on_critical_insight(auth_user):
         assert kwargs["json"][0]["to"] == "ExponentPushToken[test12345]"
         assert kwargs["json"][0]["title"] == "Paylio Advisor Alert"
         assert kwargs["json"][0]["body"] == "Critical budget breach!"
+
+
+@pytest.mark.django_db
+def test_budget_viewset_invalidates_cache_on_update_and_destroy(authenticated_client, auth_user):
+    today = date.today()
+    cache_key = f"budget_progress:{auth_user.id}:{today.year}-{today.month}"
+    cat = Category.objects.create(user=auth_user, name="Dining", kind=Category.EXPENSE)
+    budget = Budget.objects.create(user=auth_user, category=cat, monthly_limit=Decimal("5000.00"))
+
+    # Test update invalidates cache
+    cache.set(cache_key, {"cached": "data"}, 300)
+    assert cache.get(cache_key) is not None
+
+    patch_resp = authenticated_client.patch(
+        f"/api/v1/budgets/{budget.id}/",
+        {"monthly_limit": "6000.00"},
+    )
+    assert patch_resp.status_code == 200
+    assert cache.get(cache_key) is None
+
+    # Test destroy invalidates cache
+    cache.set(cache_key, {"cached": "data"}, 300)
+    assert cache.get(cache_key) is not None
+
+    del_resp = authenticated_client.delete(f"/api/v1/budgets/{budget.id}/")
+    assert del_resp.status_code == 204
+    assert cache.get(cache_key) is None
+
+
+@pytest.mark.django_db
+def test_transaction_viewset_soft_deduplication(authenticated_client, auth_user, financial_account):
+    today = date.today()
+    payload = {
+        "account": financial_account.id,
+        "amount": "250.00",
+        "date": str(today),
+        "merchant": "Swiggy Koramangala",
+        "description": "Dinner",
+    }
+    resp1 = authenticated_client.post("/api/v1/transactions/", payload)
+    assert resp1.status_code == 201
+
+    resp2 = authenticated_client.post("/api/v1/transactions/", payload)
+    assert resp2.status_code == 200
+    assert resp2.data["id"] == resp1.data["id"]
+    assert Transaction.objects.filter(user=auth_user).count() == 1
+
+
+@pytest.mark.django_db
+def test_register_view_rejects_duplicate_email(api_client):
+    payload1 = {
+        "username": "userone",
+        "email": "Duplicate@Example.com",
+        "password": "Password123!",
+    }
+    resp1 = api_client.post("/api/v1/register/", payload1)
+    assert resp1.status_code == 201
+
+    payload2 = {
+        "username": "usertwo",
+        "email": "duplicate@example.com",
+        "password": "Password123!",
+    }
+    resp2 = api_client.post("/api/v1/register/", payload2)
+    assert resp2.status_code == 400
+    assert "email" in resp2.data

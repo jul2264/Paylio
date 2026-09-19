@@ -41,10 +41,15 @@ class Transaction(models.Model):
     MANUAL, BANK_SYNC = "MANUAL", "BANK_SYNC"
     SOURCE_CHOICES = [(MANUAL, "Manual"), (BANK_SYNC, "Bank Sync")]
 
+    EXPENSE, INCOME = "EXPENSE", "INCOME"
+    KIND_EXPENSE, KIND_INCOME = EXPENSE, INCOME
+    KIND_CHOICES = [(EXPENSE, "Expense"), (INCOME, "Income")]
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     account = models.ForeignKey(FinancialAccount, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
+    kind = models.CharField(max_length=10, choices=KIND_CHOICES, default=EXPENSE, blank=True)
     date = models.DateField()
     merchant = models.CharField(max_length=200, blank=True)
     description = models.CharField(max_length=255, blank=True)

@@ -84,3 +84,53 @@ def test_categorization_tier3_end_to_end():
     txn.refresh_from_db()
 
     assert txn.category == cat
+
+
+@pytest.mark.django_db
+def test_purge_old_insights_deletes_older_than_90_days():
+    from datetime import timedelta
+    from django.utils import timezone
+    from advisor.tasks import purge_old_insights
+
+    user = UserFactory()
+    old_insight = Insight.objects.create(
+        user=user,
+        rule_key="budget_overspend",
+        severity=Insight.WARNING,
+        period_start=date.today(),
+        period_end=date.today(),
+        summary="Old insight",
+    )
+    Insight.objects.filter(id=old_insight.id).update(
+        created_at=timezone.now() - timedelta(days=95)
+    )
+
+    recent_insight = Insight.objects.create(
+        user=user,
+        rule_key="budget_overspend",
+        severity=Insight.WARNING,
+        period_start=date.today(),
+        period_end=date.today(),
+        summary="Recent insight",
+    )
+
+    deleted = purge_old_insights()
+    assert deleted == 1
+    assert not Insight.objects.filter(id=old_insight.id).exists()
+    assert Insight.objects.filter(id=recent_insight.id).exists()
+
+
+@pytest.mark.django_db
+def test_detect_recurring_for_all_users_flags_recurring():
+    from advisor.tasks import detect_recurring_for_all_users
+    from transactions.tests.factories import FinancialAccountFactory
+
+    user = UserFactory()
+    account = FinancialAccountFactory(user=user)
+
+    TransactionFactory(user=user, account=account, merchant="Netflix", amount=Decimal("649.00"), date=date(2026, 6, 1))
+    TransactionFactory(user=user, account=account, merchant="Netflix", amount=Decimal("649.00"), date=date(2026, 7, 1))
+    TransactionFactory(user=user, account=account, merchant="Netflix", amount=Decimal("649.00"), date=date(2026, 8, 1))
+
+    flagged = detect_recurring_for_all_users()
+    assert flagged == 3

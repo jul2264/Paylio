@@ -7,6 +7,7 @@ from transactions.models import Category, FinancialAccount, Transaction, UserMer
 class CategoryFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Category
+        django_get_or_create = ("user", "name")
 
     name = factory.Sequence(lambda n: f"Category {n}")
     kind = Category.EXPENSE

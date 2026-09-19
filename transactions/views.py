@@ -89,3 +89,27 @@ def import_csv_view(request):
     accounts = FinancialAccount.objects.filter(user=request.user)
     return render(request, "transactions/import_csv.html", {"accounts": accounts})
 
+
+@login_required
+def transaction_toggle_recurring(request, pk):
+    txn = get_object_or_404(Transaction, pk=pk, user=request.user)
+    txn.is_recurring = not txn.is_recurring
+    txn.save(update_fields=["is_recurring"])
+    categories = Category.objects.filter(user=request.user).order_by("name")
+    return render(request, "partials/_transaction_row.html", {"txn": txn, "categories": categories})
+
+
+@login_required
+def account_create(request):
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        account_type = request.POST.get("account_type", FinancialAccount.CHECKING)
+        if name:
+            account = FinancialAccount.objects.create(
+                user=request.user, name=name, account_type=account_type
+            )
+            return render(request, "partials/_account_option.html", {"account": account})
+    return render(request, "partials/_account_create_modal.html", {
+        "account_types": FinancialAccount.TYPE_CHOICES
+    })
+

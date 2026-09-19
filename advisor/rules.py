@@ -22,20 +22,26 @@ class BudgetOverspendRule(BaseRule):
         insights = []
         for budget in Budget.objects.filter(user=user).select_related("category"):
             spent = Transaction.objects.filter(
-                user=user, category=budget.category, date__range=(period_start, period_end)
+                user=user,
+                category=budget.category,
+                date__range=(period_start, period_end),
+                kind=Transaction.EXPENSE,
             ).aggregate(total=Sum("amount"))["total"] or 0
             if spent > budget.monthly_limit:
                 pct_over = round((float(spent) / float(budget.monthly_limit) - 1) * 100)
-                insights.append(Insight.objects.create(
+                insight, _ = Insight.objects.update_or_create(
                     user=user,
                     rule_key=self.key,
-                    severity=self.severity,
                     category=budget.category,
                     period_start=period_start,
                     period_end=period_end,
-                    summary=f"{budget.category.name} spending is {pct_over}% over budget",
-                    raw_data={"spent": float(spent), "limit": float(budget.monthly_limit), "pct_over": pct_over},
-                ))
+                    defaults={
+                        "severity": self.severity,
+                        "summary": f"{budget.category.name} spending is {pct_over}% over budget",
+                        "raw_data": {"spent": float(spent), "limit": float(budget.monthly_limit), "pct_over": pct_over},
+                    },
+                )
+                insights.append(insight)
         return insights
 
 
@@ -46,13 +52,20 @@ class TrendIncreaseRule(BaseRule):
 
     def evaluate(self, user, period_start, period_end):
         insights = []
-        categories = Transaction.objects.filter(user=user).values_list("category", flat=True).distinct()
+        categories = (
+            Transaction.objects.filter(user=user, kind=Transaction.EXPENSE)
+            .values_list("category", flat=True)
+            .distinct()
+        )
 
         for cat_id in categories:
             if cat_id is None:
                 continue
             current = Transaction.objects.filter(
-                user=user, category_id=cat_id, date__range=(period_start, period_end)
+                user=user,
+                category_id=cat_id,
+                date__range=(period_start, period_end),
+                kind=Transaction.EXPENSE,
             ).aggregate(total=Sum("amount"))["total"] or 0
 
             trailing_totals = []
@@ -60,23 +73,29 @@ class TrendIncreaseRule(BaseRule):
                 m_start = (period_start - relativedelta(months=i)).replace(day=1)
                 m_end = m_start.replace(day=28) + relativedelta(day=31)
                 total = Transaction.objects.filter(
-                    user=user, category_id=cat_id, date__range=(m_start, m_end)
+                    user=user,
+                    category_id=cat_id,
+                    date__range=(m_start, m_end),
+                    kind=Transaction.EXPENSE,
                 ).aggregate(total=Sum("amount"))["total"] or 0
                 trailing_totals.append(float(total))
 
             avg = sum(trailing_totals) / len(trailing_totals) if trailing_totals else 0
             if avg > 0 and float(current) > avg * (1 + self.THRESHOLD_PCT / 100):
                 pct_increase = round((float(current) / avg - 1) * 100)
-                insights.append(Insight.objects.create(
+                insight, _ = Insight.objects.update_or_create(
                     user=user,
                     rule_key=self.key,
-                    severity=self.severity,
                     category_id=cat_id,
                     period_start=period_start,
                     period_end=period_end,
-                    summary=f"Spending up {pct_increase}% vs your 3-month average",
-                    raw_data={"current": float(current), "trailing_avg": avg, "pct_increase": pct_increase},
-                ))
+                    defaults={
+                        "severity": self.severity,
+                        "summary": f"Spending up {pct_increase}% vs your 3-month average",
+                        "raw_data": {"current": float(current), "trailing_avg": avg, "pct_increase": pct_increase},
+                    },
+                )
+                insights.append(insight)
         return insights
 
 

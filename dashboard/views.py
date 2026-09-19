@@ -15,7 +15,7 @@ def dashboard(request):
         summary = get_monthly_summary(request.user, today.year, today.month)
         cache.set(cache_key, summary, timeout=300)
 
-    chart_labels = [row["category__name"] or "Uncategorized" for row in summary["by_category"]]
+    chart_labels = [row.get("name") or row.get("category__name") or "Uncategorized" for row in summary["by_category"]]
     chart_values = [float(row["total"]) for row in summary["by_category"]]
 
     return render(

@@ -8,7 +8,24 @@ from .models import BrokerConnection, Holding, PortfolioSnapshot
 @shared_task(acks_late=True, retry_backoff=True, max_retries=3)
 def sync_holdings_for_user(user_id):
     connection = BrokerConnection.objects.filter(user_id=user_id, broker="zerodha").first()
-    if connection is None or connection.token_expires_at < timezone.now():
+    if connection is None:
+        return
+    if connection.token_expires_at < timezone.now():
+        from advisor.models import Insight
+        Insight.objects.update_or_create(
+            user_id=user_id,
+            rule_key="broker_token_expired",
+            period_start=date.today(),
+            period_end=date.today(),
+            defaults={
+                "severity": Insight.WARNING,
+                "summary": f"Your {connection.broker.capitalize()} session has expired. Please reconnect to resume portfolio sync.",
+                "raw_data": {
+                    "broker": connection.broker,
+                    "expired_at": connection.token_expires_at.isoformat(),
+                },
+            },
+        )
         return
     raw_holdings = fetch_holdings(connection.encrypted_access_token)
     total_value = 0

@@ -29,3 +29,16 @@ def test_fetch_price_raises_on_http_error():
 
     with pytest.raises(requests.exceptions.HTTPError):
         fetch_price_per_gram_inr("GOLD")
+
+
+@responses.activate
+def test_fetch_price_raises_when_price_key_missing():
+    responses.add(
+        responses.GET,
+        "https://www.goldapi.io/api/XAU/INR",
+        json={"rate": 250000.0, "currency": "INR"},
+        status=200,
+    )
+
+    with pytest.raises(ValueError, match="missing 'price' key"):
+        fetch_price_per_gram_inr("GOLD")

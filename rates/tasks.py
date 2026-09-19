@@ -1,4 +1,6 @@
+from datetime import timedelta
 from celery import shared_task
+from django.utils import timezone
 from .fetcher import fetch_price_per_gram_inr
 from .models import MetalRateSnapshot
 
@@ -9,3 +11,5 @@ def refresh_metal_rates():
         MetalRateSnapshot.objects.create(
             metal=metal, price_per_gram_999=fetch_price_per_gram_inr(metal)
         )
+    cutoff = timezone.now() - timedelta(days=7)
+    MetalRateSnapshot.objects.filter(fetched_at__lt=cutoff).delete()

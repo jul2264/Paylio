@@ -79,9 +79,18 @@
 
                 <!-- Account -->
                 <div>
-                    <label for="{{ form.account.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                        Account *
-                    </label>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="{{ form.account.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">
+                            Account *
+                        </label>
+                        <button type="button"
+                                hx-get="{% url 'transactions:account_create' %}"
+                                hx-target="#modal-container"
+                                hx-swap="innerHTML"
+                                class="text-xs text-emerald-400 hover:text-emerald-300 font-medium">
+                            + New Account
+                        </button>
+                    </div>
                     <select id="{{ form.account.id_for_label }}"
                             name="account"
                             required
@@ -93,6 +102,20 @@
                                 <option value="">Select Account</option>
                             {% endif %}
                         {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Kind (Expense / Income) -->
+                <div>
+                    <label for="{{ form.kind.id_for_label }}" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                        Type *
+                    </label>
+                    <select id="{{ form.kind.id_for_label }}"
+                            name="kind"
+                            required
+                            class="w-full bg-slate-800/60 border border-slate-700/80 rounded-xl px-3.5 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm transition-colors">
+                        <option value="EXPENSE" selected>Expense</option>
+                        <option value="INCOME">Income</option>
                     </select>
                 </div>
 
@@ -201,4 +224,5 @@
         </div>
     </div>
 </div>
+<div id="modal-container"></div>
 {% endblock %}

@@ -68,6 +68,32 @@ class TransactionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(category_id=category_id)
         return qs
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        vd = serializer.validated_data
+
+        account = vd.get("account")
+        tx_date = vd.get("date")
+        amount = vd.get("amount")
+        merchant = vd.get("merchant", "")
+
+        from transactions.categorization import normalize_merchant
+        norm_merchant = normalize_merchant(merchant)
+
+        existing = Transaction.objects.filter(
+            user=request.user,
+            account=account,
+            date=tx_date,
+            amount=amount,
+        )
+        for cand in existing:
+            if normalize_merchant(cand.merchant) == norm_merchant:
+                out_serializer = self.get_serializer(cand)
+                return Response(out_serializer.data, status=status.HTTP_200_OK)
+
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         txn = serializer.save(user=self.request.user)
         if txn.category is None:
@@ -83,10 +109,21 @@ class BudgetViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Budget.objects.filter(user=self.request.user).select_related("category")
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def _invalidate_cache(self):
         today = date.today()
         cache.delete(f"budget_progress:{self.request.user.id}:{today.year}-{today.month}")
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+        self._invalidate_cache()
+
+    def perform_update(self, serializer):
+        serializer.save()
+        self._invalidate_cache()
+
+    def perform_destroy(self, instance):
+        instance.delete()
+        self._invalidate_cache()
 
 
 @api_view(["GET"])
@@ -118,6 +155,10 @@ def advisor_feed(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def advisor_refresh(request):
+    rate_key = f"advisor_refresh_lock:{request.user.id}"
+    if not cache.add(rate_key, 1, timeout=300):
+        return advisor_feed(request)
+
     today = date.today()
     period_start = today.replace(day=1)
     new_insights = run_rules_for_user(request.user, period_start, today)
